@@ -1,0 +1,10 @@
+## Ignore emacs tmps
+[.][#]*
+[#]*[#]
+*~
+
+## Ignore python caches
+__pycache__
+
+## Ignore junk files
+junk
