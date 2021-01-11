@@ -8,3 +8,6 @@ __pycache__
 
 ## Ignore junk files
 junk
+
+## Ignore data from version control if saved here
+data/
