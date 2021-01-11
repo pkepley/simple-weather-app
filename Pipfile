@@ -8,6 +8,7 @@ requests = "*"
 pandas = "*"
 bs4 = "*"
 tzlocal = "*"
+flake8 = "*"
 
 [dev-packages]
 
