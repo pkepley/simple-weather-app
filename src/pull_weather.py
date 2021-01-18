@@ -108,7 +108,7 @@ def parse_nws_fcst(req_text, pull_date_str):
 
 
 def pull_save_parse_nws_fcst(airport_name, df_airports, pull_date_str,
-                             out_dir=None):
+                             out_dir=None, minimal_save=True):
     '''Pull, save, and parse the weather forecast from NWS for the airport
     specified by airport_name, using the information stored on
     df_airports. Data will be time-stamped using the date provided on
@@ -125,22 +125,37 @@ def pull_save_parse_nws_fcst(airport_name, df_airports, pull_date_str,
         return None
 
     # Retain XML file
-    fcst_file_xml = os.path.join(out_dir, f'nws_fcst_{pull_date_str}.xml')
+    fcst_file_xml = os.path.join(
+        out_dir,
+        f'nws_fcst_{pull_date_str}.xml'
+    )
     with open(fcst_file_xml, 'w') as f:
         f.write(req_text)
 
     # Parse
-    df = parse_nws_fcst(req_text, pull_date_str)
-    if df is None:
-        return df
+    df_fcst = parse_nws_fcst(req_text, pull_date_str)
+    if df_fcst is None:
+        return df_fcst
 
     # Write CSV to file
     if out_dir is not None:
-        fcst_file_name = os.path.join(out_dir, f'nws_fcst_{pull_date_str}.csv')
-        print(f'saving to {fcst_file_name}')
-        df.to_csv(fcst_file_name, index=False)
+        fcst_file_name = os.path.join(
+            out_dir,
+            f'nws_fcst_{pull_date_str}.csv'
+        )
 
-    return df
+        if minimal_save:
+            save_cols = ['pull_date', 'forecast_time_stamps',
+                         'wind_speed_sustained',
+                         'probability_of_precipitation_floating',
+                         'temperature_hourly']
+        else:
+            save_cols = df_fcst.columns
+
+        print(f'saving to {fcst_file_name}')
+        df_fcst[save_cols].to_csv(fcst_file_name, index=False)
+
+    return df_fcst
 
 
 def pull_nws_actl(airport_name, df_airports):
@@ -403,7 +418,8 @@ def parse_nws_actl(req_text, df_airports, airport_name, date_str_last_actl,
     return df_nws_actl
 
 
-def pull_save_parse_nws_actl(airport_name, df_airports, out_dir=None):
+def pull_save_parse_nws_actl(airport_name, df_airports, out_dir=None,
+                             minimal_save=True):
     '''Pull, save, and parse the actual weather data from NWS for the
     airport specified by airport_name, using the information stored on
     df_airports. Data will be time-stamped using the date provided on
@@ -446,11 +462,21 @@ def pull_save_parse_nws_actl(airport_name, df_airports, out_dir=None):
     if df_nws_actl is None:
         return None
 
-    # Write parsed CSV to file
-    actl_file_name = os.path.join(out_dir,
-                                  f'nws_actl_{date_str_last_actl}.csv')
-    print(f'saving to {actl_file_name}')
-    df_nws_actl.to_csv(actl_file_name, index=False)
+    if out_dir is not None:
+        # Write parsed CSV to file
+        actl_file_name = os.path.join(
+            out_dir,
+            f'nws_actl_{date_str_last_actl}.csv'
+        )
+
+        if minimal_save:
+            save_cols = ['datetime', 'wind_speed', 'air_temp',
+                         'precip_1_hour']
+        else:
+            save_cols = df_nws_actl.columns
+
+        print(f'saving to {actl_file_name}')
+        df_nws_actl[save_cols].to_csv(actl_file_name, index=False)
 
     return df_nws_actl
 
@@ -482,9 +508,12 @@ def pull_and_save(df_airports, df_airports_to_pull, pull_date_str,
         # Pull Forecast
         try:
             print(f'Attempting to pull forecast for {airport_name}.')
-            df_fcst = pull_save_parse_nws_fcst(airport_name,
-                                               df_airports, pull_date_str,
-                                               out_dir=airport_out_dir)
+            df_fcst = pull_save_parse_nws_fcst(
+                airport_name,
+                df_airports,
+                pull_date_str,
+                out_dir=airport_out_dir
+            )
             if df_fcst is not None:
                 print(f'Successful fcst pull for {airport_name}' +
                       f'on {pull_date_str}.')
@@ -497,8 +526,11 @@ def pull_and_save(df_airports, df_airports_to_pull, pull_date_str,
         # Pull actual data
         try:
             print(f'Attempting to pull actual for {airport_name}.')
-            df_actl = pull_save_parse_nws_actl(airport_name, df_airports,
-                                               out_dir=airport_out_dir)
+            df_actl = pull_save_parse_nws_actl(
+                airport_name,
+                df_airports,
+                out_dir=airport_out_dir
+            )
             if df_actl is not None:
                 print(f'Successful actl pull for {airport_name}' +
                       f'on {pull_date_str}.')
