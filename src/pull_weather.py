@@ -508,9 +508,9 @@ def pull_and_save(df_airports, df_airports_to_pull, pull_date_str,
         except ValueError:
             print(f'Error while pulling actl for {airport_name}.')
 
-    # Sleep for a few seconds
-    random_sleep()
-    sys.stdout.flush()
+        # Sleep for a few seconds
+        random_sleep()
+        sys.stdout.flush()
 
 
 def midnight_time_zone(pull_hour=0):
